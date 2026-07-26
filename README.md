@@ -15,11 +15,27 @@ slot on the current week.
 
 ## Open It
 
-Open `index.html` directly in a browser, or run a local static server from this
-folder:
+Hosted version:
+
+```text
+https://apartment-meal-prep-20260726.dpatil.chatgpt.site
+```
+
+Local double-click version:
+
+Double-click `start-meal-prep.bat`. It starts the local server and opens the
+site in your browser.
+
+Manual local server:
 
 ```powershell
 python -m http.server 4173
 ```
 
 Then visit `http://localhost:4173`.
+
+Direct file version:
+
+Open `index.html` directly in a browser. Most planner features work this way,
+but the local server path is better for browser features like clipboard and API
+requests.
