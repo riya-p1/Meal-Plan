@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Apartment Meal Prep</title>
+    <meta
+      name="description"
+      content="A cute local-first meal prep planner for weekly meals, leftovers, ingredients, and shopping."
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="#today" aria-label="Apartment Meal Prep home">
+          <span class="brand-mark" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+          </span>
+          <span>
+            <strong>Apartment Meal Prep</strong>
+            <small>cook once, eat twice</small>
+          </span>
+        </a>
+
+        <nav class="nav-pills" aria-label="Main sections">
+          <a href="#today">Today</a>
+          <a href="#week">Week</a>
+          <a href="#ingredients">Ingredients</a>
+          <a href="#custom-meals">Meals</a>
+          <a href="#ai-planner">AI Plan</a>
+          <a href="#log">Log</a>
+        </nav>
+      </header>
+
+      <main>
+        <section class="dashboard" id="today">
+          <div class="intro-panel">
+            <div>
+              <p class="eyebrow">Next-week plan from your Gemini convo</p>
+              <h1>Your tiny local prep desk</h1>
+              <p>
+                Breakfast is handled, fruit becomes snack, and dinners are set up to
+                cover tomorrow's lunch whenever it makes sense.
+              </p>
+            </div>
+
+            <div class="bento-visual" aria-label="Decorative bento box with rice, pasta, eggs, and vegetables">
+              <span class="rice"></span>
+              <span class="pasta"></span>
+              <span class="egg"></span>
+              <span class="avo"></span>
+              <span class="chili"></span>
+              <span class="lime"></span>
+            </div>
+          </div>
+
+          <aside class="today-card" aria-labelledby="today-title">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow" id="today-label">Today</p>
+                <h2 id="today-title">Loading plan</h2>
+              </div>
+              <button class="icon-button" id="jump-today" type="button" title="Jump to today" aria-label="Jump to today">
+                <span aria-hidden="true">*</span>
+              </button>
+            </div>
+            <div id="today-content" class="today-content"></div>
+          </aside>
+        </section>
+
+        <section class="quick-actions" aria-label="Quick actions">
+          <button class="action-card" id="open-log" type="button">
+            <span aria-hidden="true">+</span>
+            Log a meal
+          </button>
+          <button class="action-card" id="add-ingredient" type="button">
+            <span aria-hidden="true">#</span>
+            Add ingredient
+          </button>
+          <button class="action-card" id="open-meals" type="button">
+            <span aria-hidden="true">M</span>
+            Custom meals
+          </button>
+          <button class="action-card" id="open-ai" type="button">
+            <span aria-hidden="true">*</span>
+            Generate plan
+          </button>
+          <button class="action-card" id="copy-list" type="button">
+            <span aria-hidden="true">[]</span>
+            Copy buy list
+          </button>
+          <button class="action-card danger-soft" id="reset-data" type="button">
+            <span aria-hidden="true">R</span>
+            Reset
+          </button>
+        </section>
+
+        <section class="section" id="week">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Weekly rhythm</p>
+              <h2 id="current-plan-title">This week's meals</h2>
+            </div>
+            <p class="section-note" id="current-plan-note">Tap a meal to mark it done or packed.</p>
+          </div>
+          <div class="week-grid" id="week-grid"></div>
+        </section>
+
+        <section class="section two-column" id="ingredients">
+          <div>
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Prep board</p>
+                <h2>Ingredients and kitchen assets</h2>
+              </div>
+              <button class="small-button" id="clear-bought" type="button">Clear bought</button>
+            </div>
+            <div class="ingredient-board" id="ingredient-board"></div>
+          </div>
+
+          <form class="form-card" id="ingredient-form">
+            <p class="eyebrow">Add your own</p>
+            <h3>Ingredient note</h3>
+            <label>
+              Item
+              <input id="ingredient-name" name="name" type="text" placeholder="ex: spinach, tofu, hummus" required />
+            </label>
+            <label>
+              Amount or note
+              <input id="ingredient-amount" name="amount" type="text" placeholder="ex: 1 bag, use soon, optional" />
+            </label>
+            <label>
+              Bucket
+              <select id="ingredient-bucket" name="bucket">
+                <option value="buy">Need to buy</option>
+                <option value="useSoon">Use soon</option>
+                <option value="pantry">Pantry / shelf</option>
+                <option value="fridge">Fridge</option>
+                <option value="freezer">Freezer</option>
+                <option value="equipment">Kitchen asset</option>
+                <option value="prep">Prep task</option>
+              </select>
+            </label>
+            <button class="primary-button" type="submit">Add ingredient</button>
+          </form>
+        </section>
+
+        <section class="section two-column" id="custom-meals">
+          <form class="form-card" id="custom-meal-form">
+            <p class="eyebrow">Recipe drawer</p>
+            <h2>Make your own meal</h2>
+            <label>
+              Meal name
+              <input id="custom-meal-title" name="title" type="text" placeholder="ex: avocado egg tortilla melt" required />
+            </label>
+            <label>
+              Usual slot
+              <select id="custom-meal-kind" name="kind">
+                <option>Dinner</option>
+                <option>Lunch</option>
+                <option>Snack</option>
+                <option>Breakfast</option>
+              </select>
+            </label>
+            <label>
+              Ingredients
+              <textarea
+                id="custom-meal-ingredients"
+                name="ingredients"
+                rows="4"
+                placeholder="ex: tortilla, avocado, egg, cheddar, jalapeno, lime"
+              ></textarea>
+            </label>
+            <label>
+              Notes / steps
+              <textarea
+                id="custom-meal-note"
+                name="note"
+                rows="4"
+                placeholder="ex: mash avocado with lime, pan-fry tortilla with egg and cheese"
+              ></textarea>
+            </label>
+            <label class="checkbox-label">
+              <input id="custom-meal-leftovers" name="leftovers" type="checkbox" checked />
+              Good for leftovers
+            </label>
+            <button class="primary-button" type="submit">Save custom meal</button>
+          </form>
+
+          <div class="log-panel">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Saved meals</p>
+                <h2>Your meal library</h2>
+              </div>
+              <button class="small-button" id="clear-custom-meals" type="button">Clear custom</button>
+            </div>
+            <form class="mini-planner" id="place-meal-form">
+              <label>
+                Meal
+                <select id="place-meal-select" name="mealId"></select>
+              </label>
+              <label>
+                Day
+                <select id="place-meal-day" name="day"></select>
+              </label>
+              <label>
+                Slot
+                <select id="place-meal-kind" name="kind">
+                  <option>Lunch</option>
+                  <option>Dinner</option>
+                </select>
+              </label>
+              <button class="small-button" type="submit">Put on week</button>
+            </form>
+            <div class="meal-library-list" id="meal-library-list"></div>
+          </div>
+        </section>
+
+        <section class="section two-column" id="ai-planner">
+          <form class="form-card" id="ai-plan-form">
+            <p class="eyebrow">Optional AI</p>
+            <h2>Generate next week</h2>
+            <label>
+              OpenAI API key
+              <input id="ai-key" name="apiKey" type="password" placeholder="Stored only in this browser" autocomplete="off" />
+            </label>
+            <label>
+              Model
+              <input id="ai-model" name="model" type="text" value="gpt-5.6-sol" />
+            </label>
+            <label>
+              This week's update
+              <textarea
+                id="ai-notes"
+                name="notes"
+                rows="5"
+                placeholder="ex: dosa batter is gone, bought tofu and spinach, want two Chipotle/Subway nights, less spicy this week"
+              ></textarea>
+            </label>
+            <div class="inline-fields">
+              <label>
+                Fast-casual nights
+                <input id="ai-takeout" name="takeoutNights" type="number" min="0" max="4" value="1" />
+              </label>
+              <label class="checkbox-label">
+                <input id="ai-save-key" name="saveKey" type="checkbox" checked />
+                Remember key locally
+              </label>
+            </div>
+            <button class="primary-button" id="generate-plan" type="submit">Generate weekly plan</button>
+            <p class="form-hint">
+              The AI uses your saved pantry, fridge, equipment, meal logs, and preferences.
+              API calls go from this local browser to OpenAI.
+            </p>
+          </form>
+
+          <div class="log-panel">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Saved plans</p>
+                <h2>Meal plan history</h2>
+              </div>
+              <button class="small-button" id="copy-ai-prompt" type="button">Copy prompt</button>
+            </div>
+            <div class="ai-status" id="ai-status">Ready when your kitchen list is.</div>
+            <div class="saved-plan-list" id="saved-plan-list"></div>
+          </div>
+        </section>
+
+        <section class="section two-column" id="log">
+          <form class="form-card" id="meal-log-form">
+            <p class="eyebrow">Meal diary</p>
+            <h2>Log what you ate</h2>
+            <label>
+              Date
+              <input id="log-date" name="date" type="date" required />
+            </label>
+            <label>
+              Meal
+              <select id="log-meal" name="meal">
+                <option>Dinner</option>
+                <option>Lunch</option>
+                <option>Snack</option>
+                <option>Breakfast</option>
+              </select>
+            </label>
+            <label>
+              What did you eat?
+              <input id="log-title" name="title" type="text" placeholder="ex: pesto penne with chicken slices" required />
+            </label>
+            <label>
+              Leftovers / notes
+              <textarea id="log-notes" name="notes" rows="4" placeholder="Packed lunch? Craving something else?"></textarea>
+            </label>
+            <div class="inline-fields">
+              <label>
+                Mood
+                <select id="log-mood" name="mood">
+                  <option>comfort</option>
+                  <option>quick</option>
+                  <option>fresh</option>
+                  <option>spicy</option>
+                  <option>skip next time</option>
+                </select>
+              </label>
+              <label class="checkbox-label">
+                <input id="log-packed" name="packed" type="checkbox" />
+                Packed leftovers
+              </label>
+            </div>
+            <button class="primary-button" type="submit">Save meal log</button>
+          </form>
+
+          <div class="log-panel">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Recent</p>
+                <h2>Your logs</h2>
+              </div>
+              <button class="small-button" id="clear-logs" type="button">Clear logs</button>
+            </div>
+            <div class="log-list" id="log-list"></div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
