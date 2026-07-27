@@ -25,6 +25,7 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: clip;
 }
 
 body {
@@ -32,6 +33,7 @@ body {
   margin: 0;
   color: var(--ink);
   background: #fffafc;
+  overflow-x: clip;
 }
 
 button,
@@ -51,14 +53,14 @@ a {
 }
 
 .app-shell {
-  width: min(1320px, calc(100% - 32px));
+  width: min(1240px, calc(100% - 40px));
   margin: 0 auto;
   padding: 0 0 48px;
 }
 
 .template-cover {
   position: relative;
-  height: clamp(220px, 28vw, 360px);
+  height: clamp(150px, 18vw, 240px);
   overflow: hidden;
   background: #efd8de;
 }
@@ -79,13 +81,13 @@ a {
 
 .cover-title {
   position: absolute;
-  top: 18%;
+  top: 50%;
   left: 50%;
   z-index: 1;
-  transform: translateX(-50%) rotate(1deg);
+  transform: translate(-50%, -50%) rotate(1deg);
   color: white;
   font-family: Impact, "Arial Black", sans-serif;
-  font-size: clamp(3.2rem, 8vw, 7.7rem);
+  font-size: clamp(2.5rem, 6vw, 5.8rem);
   font-weight: 900;
   line-height: 0.82;
   letter-spacing: 3px;
@@ -314,8 +316,8 @@ main {
 
 .homepage-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(360px, 0.95fr);
-  gap: 44px;
+  grid-template-columns: minmax(0, 1.08fr) minmax(300px, 0.82fr);
+  gap: clamp(20px, 3vw, 34px);
   align-items: start;
 }
 
@@ -340,6 +342,26 @@ main {
   grid-template-columns: minmax(0, 1.45fr) minmax(300px, 0.78fr);
   gap: 18px;
   min-height: 430px;
+}
+
+.today-strip {
+  display: block;
+  min-height: 0;
+}
+
+.today-strip .today-card {
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+.homepage-layout > *,
+.dashboard > *,
+.two-column > *,
+.section > *,
+.ingredient-column,
+.day-column,
+.chore-day {
+  min-width: 0;
 }
 
 .template-links {
@@ -407,8 +429,9 @@ main {
 
 .homepage-right {
   display: grid;
-  grid-template-columns: repeat(2, minmax(180px, 1fr));
-  gap: 38px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(18px, 2.5vw, 30px);
+  min-width: 0;
 }
 
 .oval-photo {
@@ -753,15 +776,13 @@ h3 {
 
 .week-grid {
   display: grid;
-  grid-template-columns: repeat(6, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
   gap: 10px;
-  overflow-x: auto;
   padding-bottom: 4px;
 }
 
 .day-column {
   display: grid;
-  min-width: 150px;
   gap: 10px;
 }
 
@@ -842,16 +863,24 @@ h3 {
   gap: 18px;
 }
 
+#ingredients.two-column {
+  grid-template-columns: 1fr;
+}
+
+#ingredient-form {
+  max-width: 560px;
+}
+
 .ingredient-board {
   display: grid;
-  grid-template-columns: repeat(7, minmax(150px, 1fr));
-  gap: 10px;
-  overflow-x: auto;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  align-items: start;
   padding-bottom: 4px;
 }
 
 .ingredient-column {
-  min-height: 210px;
+  min-height: 0;
   overflow: hidden;
 }
 
@@ -866,14 +895,12 @@ h3 {
 }
 
 .chore-grid {
-  grid-template-columns: repeat(7, minmax(230px, 1fr));
-  overflow-x: auto;
+  grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
   padding-bottom: 4px;
 }
 
 .chore-day {
   display: grid;
-  min-width: 230px;
   gap: 10px;
   padding: 0 0 10px;
   overflow: hidden;
@@ -944,14 +971,15 @@ h3 {
 
 .ingredient-list {
   display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
   gap: 7px;
   padding: 10px;
 }
 
 .ingredient-item {
   display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
   gap: 8px;
   min-height: 42px;
   padding: 8px;
@@ -967,11 +995,13 @@ h3 {
 
 .ingredient-item span {
   display: block;
+  min-width: 0;
 }
 
 .ingredient-item small {
   display: block;
   color: var(--muted);
+  font-size: 0.82rem;
   line-height: 1.35;
 }
 
@@ -1213,7 +1243,7 @@ a:focus-visible {
   }
 
   .homepage-right {
-    grid-template-columns: repeat(2, minmax(180px, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     max-width: 760px;
   }
 
@@ -1264,11 +1294,11 @@ a:focus-visible {
   }
 
   .template-cover {
-    height: 220px;
+    height: 170px;
   }
 
   .cover-title {
-    font-size: clamp(3rem, 16vw, 5.4rem);
+    font-size: clamp(2.5rem, 14vw, 4.6rem);
   }
 
   .aesthetic-home {
