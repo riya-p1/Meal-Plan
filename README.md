@@ -13,6 +13,10 @@ Use the Meals section to save custom meals with ingredients and notes. Any saved
 custom, logged, or AI-generated meal can be placed into a day and lunch/dinner
 slot on the current week.
 
+Planning rule: the default week runs from Sunday dinner through Friday dinner.
+There should be only one fast-casual dinner, and its leftover half should become
+the next day's lunch.
+
 ## Open It
 
 Hosted version:

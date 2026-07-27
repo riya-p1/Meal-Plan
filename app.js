@@ -3,92 +3,81 @@ const OLD_STORAGE_KEY = "apartment-meal-prep-v1";
 const DEFAULT_MODEL = "gpt-5.6-sol";
 
 const defaultPlan = {
-  id: "starter-gemini-plan",
-  title: "Gemini starter week",
-  source: "Gemini convo",
+  id: "corrected-sunday-friday-plan",
+  title: "Sunday-Friday concrete plan",
+  source: "Corrected Gemini plan",
   createdAt: Date.now(),
-  note: "Breakfast is handled, fruit becomes snack, and dinners are set up to cover tomorrow's lunch.",
+  note: "Sunday dinner through Friday dinner. One fast-casual dinner only, and its leftovers become the next day's lunch.",
   days: [
+    {
+      day: "Sunday",
+      lunch: {
+        title: "No planned lunch",
+        note: "The concrete plan starts tonight with dinner.",
+      },
+      dinner: {
+        title: "Dosa night",
+        note: "Finish the dosa batter tonight. Eat dosas hot with pickle paste and homemade yogurt.",
+      },
+    },
     {
       day: "Monday",
       lunch: {
-        title: "Breakfast fruit snack + simple lunch",
-        note: "Breakfast is free. Keep fruit for the afternoon and do not overthink lunch.",
+        title: "No packed leftovers",
+        note: "Breakfast is provided and fruit can be your snack. Fast-casual happens at dinner, not lunch.",
       },
       dinner: {
-        title: "Dosa with pickle paste and yogurt",
-        note: "Use a big chunk of dosa batter first. Pair with curd and pickle paste.",
+        title: "Fast-casual night",
+        note: "Buy Subway or Chipotle on the way home. Eat half for dinner and save half for Tuesday lunch.",
       },
     },
     {
       day: "Tuesday",
       lunch: {
-        title: "Chipotle or Subway",
-        note: "Fast-casual pivot day. Buy fresh and keep the week low-effort.",
+        title: "Leftover fast-casual half",
+        note: "Pack the remaining sandwich or bowl in a glass box for work.",
       },
       dinner: {
-        title: "Leftover half",
-        note: "Eat the saved half. No cooking tonight.",
+        title: "Pesto or marinara penne with chicken",
+        note: "Boil penne. Toss with pesto or marinara, canned black olives, and chicken slices.",
       },
     },
     {
       day: "Wednesday",
       lunch: {
-        title: "Flexible backup",
-        note: "Use fruit, toast, or a simple sandwich if needed.",
+        title: "Leftover chicken pasta",
+        note: "Pack Tuesday's pasta in a glass box and microwave it at work.",
       },
       dinner: {
-        title: "Pesto or marinara penne",
-        note: "Boil pasta, toss with sauce, cheese, and chicken slices if you bought them.",
+        title: "Lemon or puliyogare rice with eggs",
+        note: "Use the rice cooker for Sona Masoori rice. Mix with lemon rice mix or puliyogare paste, ghee, and 2 boiled eggs.",
       },
     },
     {
       day: "Thursday",
       lunch: {
-        title: "Leftover pasta",
-        note: "Pack pasta in a glass box. Microwave-friendly and sturdy.",
+        title: "Leftover seasoned rice and egg",
+        note: "Pack leftover lemon or puliyogare rice with another boiled egg.",
       },
       dinner: {
-        title: "Lemon rice or puliyogare with eggs",
-        note: "Rice cooker batch with ghee and mix. Add 1-2 boiled eggs.",
+        title: "Avocado and cheese quesadillas",
+        note: "Pan-warm tortillas with butter, cheese, mashed avocado with lime and salt, cucumbers, and chicken slices.",
       },
     },
     {
       day: "Friday",
       lunch: {
-        title: "Leftover rice and boiled egg",
-        note: "Pack rice plus an egg. Add yogurt if the rice is spicy.",
+        title: "Leftover quesadillas",
+        note: "Pack Thursday's quesadillas. Eat cold or rewarm quickly in the microwave.",
       },
       dinner: {
-        title: "Buldak or Maggi upgrade",
-        note: "Add soy sauce, cheddar, and a boiled egg for end-of-week comfort.",
-      },
-    },
-    {
-      day: "Saturday",
-      lunch: {
-        title: "Avocado egg quesadilla",
-        note: "Tortilla, avocado with lime, cheese, egg, and chopped jalapeno or poblano.",
-      },
-      dinner: {
-        title: "Frozen dumplings",
-        note: "Boil or pan-fry. Dip in soy sauce with Cholula or sriracha mayo.",
-      },
-    },
-    {
-      day: "Sunday",
-      lunch: {
-        title: "Nutella toast or leftovers",
-        note: "Keep it easy and use up anything already open.",
-      },
-      dinner: {
-        title: "Plan reset and prep",
-        note: "Boil eggs, check avocado, and set Monday's box if needed.",
+        title: "Weekend kickoff ramen",
+        note: "Make Buldak or Maggi. Add cheddar, soy sauce, boiled egg, and jalapenos if you want heat.",
       },
     },
   ],
   shoppingList: ["Chicken slices", "Lettuce", "Soy sauce"],
-  prepTasks: ["Boil 4-5 eggs", "Set out glass boxes", "Check avocado ripeness"],
+  prepTasks: ["Finish dosa batter Sunday night", "Boil eggs for Wednesday and Friday", "Set out glass boxes for Tue-Fri leftovers"],
 };
 
 const defaultState = {
@@ -129,7 +118,7 @@ const defaultState = {
     { id: "prep-eggs", bucket: "prep", name: "Boil eggs", amount: "Make 4-5 at the start of the week", checked: false },
     { id: "prep-boxes", bucket: "prep", name: "Set out glass boxes", amount: "Pack pasta, rice, or leftovers before bed", checked: false },
     { id: "prep-rice", bucket: "prep", name: "Rice cooker batch", amount: "Thursday dinner becomes Friday lunch", checked: false },
-    { id: "prep-takeout", bucket: "prep", name: "Split fast-casual meal", amount: "Save half for dinner or tomorrow lunch", checked: false },
+    { id: "prep-takeout", bucket: "prep", name: "Split fast-casual dinner", amount: "Only one fast-casual dinner; save half for next day's lunch", checked: false },
   ],
   logs: [],
   mealLibrary: [],
@@ -216,6 +205,12 @@ function normalizeState(saved, fallback) {
     ...item,
     bucket: item.bucket === "onHand" ? "pantry" : item.bucket,
   }));
+  if (normalized.currentPlan.id === "starter-gemini-plan") {
+    normalized.currentPlan = structuredClone(defaultPlan);
+  }
+  normalized.savedPlans = normalized.savedPlans.map((plan) =>
+    plan.id === "starter-gemini-plan" ? structuredClone(defaultPlan) : plan,
+  );
   return normalized;
 }
 
@@ -507,11 +502,14 @@ function buildAiPrompt(notes, takeoutNights) {
 
 Context:
 - Work schedule is about 9 AM to 5/6 PM.
-- Breakfast is provided, so only plan lunch, dinner, snacks, and prep notes.
+- Generate the plan from Sunday dinner through Friday dinner.
+- Sunday only needs dinner; Monday through Friday need lunch and dinner.
+- Breakfast is provided and should not be planned, except fruit can be mentioned as a snack.
 - Mostly vegetarian, but chicken slices are okay.
 - Prefer low-effort meals, rice cooker/stove/microwave friendly.
 - Use cook-once-eat-twice logic where dinner can become tomorrow's lunch.
-- Fast-casual nights requested: ${takeoutNights}.
+- Exactly ${takeoutNights} fast-casual dinner night(s), unless the user explicitly says zero.
+- Fast-casual must happen at night for dinner, and the leftover half must be the next day's lunch.
 
 Saved kitchen inventory and assets:
 ${ingredientsByBucket}
@@ -525,7 +523,7 @@ ${customMeals || "No custom meals yet."}
 This week's update:
 ${notes || "No extra update."}
 
-Return exactly 7 days, Monday through Sunday. Keep lunch and dinner practical, include use-soon items, and generate only food that fits the saved kitchen assets.`;
+Return exactly 6 days in this order: Sunday, Monday, Tuesday, Wednesday, Thursday, Friday. Keep lunch and dinner practical, include use-soon items, and generate only food that fits the saved kitchen assets.`;
 
   state.ai.lastPrompt = prompt;
   return prompt;
