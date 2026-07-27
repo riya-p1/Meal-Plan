@@ -23,12 +23,6 @@ the next day's lunch.
 
 ## Open It
 
-Hosted version:
-
-```text
-https://apartment-meal-prep-20260726.dpatil.chatgpt.site
-```
-
 Local double-click version:
 
 Double-click `start-meal-prep.bat`. It starts the local server and opens the
