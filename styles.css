@@ -597,14 +597,14 @@ h3 {
 }
 
 .chore-grid {
-  grid-template-columns: repeat(7, minmax(155px, 1fr));
+  grid-template-columns: repeat(7, minmax(230px, 1fr));
   overflow-x: auto;
   padding-bottom: 4px;
 }
 
 .chore-day {
   display: grid;
-  min-width: 155px;
+  min-width: 230px;
   gap: 10px;
   padding: 0 0 10px;
   overflow: hidden;
@@ -619,7 +619,7 @@ h3 {
 
 .routine-item {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 8px;
   min-height: 54px;
@@ -635,12 +635,31 @@ h3 {
 
 .routine-item span {
   display: block;
+  min-width: 0;
 }
 
 .routine-item small {
   display: block;
   color: var(--muted);
   line-height: 1.35;
+}
+
+.routine-item.compact {
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  min-height: auto;
+  padding: 10px;
+}
+
+.routine-item.compact > span > span {
+  font-size: 0.98rem;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.routine-item.compact small {
+  margin-top: 3px;
+  font-size: 0.82rem;
 }
 
 .ingredient-column h3 {

@@ -490,8 +490,11 @@ function renderChoreGrid() {
 
 function routineItem(task, dateKey, dayName, compact = false) {
   const done = isRoutineDone(task, dateKey);
+  const removeButton = compact
+    ? ""
+    : `<button class="remove-button" type="button" data-routine-remove="${task.id}" title="Remove ${escapeHtml(task.name)}" aria-label="Remove ${escapeHtml(task.name)}">x</button>`;
   return `
-    <article class="routine-item ${done ? "is-checked" : ""}">
+    <article class="routine-item ${compact ? "compact" : ""} ${done ? "is-checked" : ""}">
       <input
         type="checkbox"
         data-routine-check="${task.id}"
@@ -503,7 +506,7 @@ function routineItem(task, dateKey, dayName, compact = false) {
         <span>${escapeHtml(task.name)}</span>
         <small>${escapeHtml([task.category, task.time, compact ? "" : task.notes].filter(Boolean).join(" - "))}</small>
       </span>
-      <button class="remove-button" type="button" data-routine-remove="${task.id}" title="Remove ${escapeHtml(task.name)}" aria-label="Remove ${escapeHtml(task.name)}" ${task.locked ? "disabled" : ""}>x</button>
+      ${removeButton}
     </article>
   `;
 }
@@ -1054,7 +1057,7 @@ document.addEventListener("click", (event) => {
   }
 
   const routineRemove = event.target.closest("[data-routine-remove]");
-  if (routineRemove && !routineRemove.disabled) {
+  if (routineRemove) {
     state.routineTasks = state.routineTasks.filter((task) => task.id !== routineRemove.dataset.routineRemove);
     saveState();
     renderRoutine();
