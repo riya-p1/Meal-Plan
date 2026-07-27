@@ -1,17 +1,19 @@
 :root {
   color-scheme: light;
-  --ink: #202123;
-  --muted: #626864;
-  --paper: #fffaf0;
+  --ink: #2f242b;
+  --muted: #74636b;
+  --paper: #fff5f8;
   --surface: #ffffff;
-  --line: #dfddd0;
-  --mint: #a8dbc2;
-  --tomato: #f0725f;
-  --butter: #ffd86b;
-  --leaf: #4f8f6f;
-  --plum: #8066a8;
-  --sky: #9ed3e6;
-  --shadow: 0 20px 45px rgba(39, 42, 35, 0.12);
+  --line: #ead0da;
+  --mint: #b9ddc8;
+  --tomato: #e97d8f;
+  --butter: #f7d675;
+  --leaf: #5d8a6d;
+  --plum: #8e6aa7;
+  --sky: #a9d7df;
+  --rose: #f6b5c8;
+  --blush: #ffe3eb;
+  --shadow: 0 20px 45px rgba(90, 51, 70, 0.13);
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
@@ -30,10 +32,10 @@ body {
   margin: 0;
   color: var(--ink);
   background:
-    linear-gradient(90deg, rgba(168, 219, 194, 0.24) 1px, transparent 1px),
-    linear-gradient(rgba(240, 114, 95, 0.16) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(246, 181, 200, 0.22) 1px, transparent 1px),
+    linear-gradient(rgba(93, 138, 109, 0.12) 1px, transparent 1px),
     var(--paper);
-  background-size: 42px 42px;
+  background-size: 34px 34px;
 }
 
 button,
@@ -69,8 +71,8 @@ a {
   padding: 10px 12px;
   border: 1px solid rgba(32, 33, 35, 0.1);
   border-radius: 8px;
-  background: rgba(255, 250, 240, 0.9);
-  box-shadow: 0 10px 26px rgba(39, 42, 35, 0.08);
+  background: rgba(255, 245, 248, 0.92);
+  box-shadow: 0 10px 26px rgba(90, 51, 70, 0.1);
   backdrop-filter: blur(16px);
 }
 
@@ -105,7 +107,7 @@ a {
   border: 2px solid var(--ink);
   border-radius: 8px;
   background: var(--surface);
-  box-shadow: 3px 3px 0 var(--butter);
+  box-shadow: 3px 3px 0 var(--rose);
 }
 
 .brand-mark span {
@@ -117,12 +119,12 @@ a {
 }
 
 .brand-mark span:nth-child(2) {
-  background: var(--tomato);
+  background: var(--rose);
 }
 
 .brand-mark span:nth-child(3) {
   grid-column: span 2;
-  background: var(--sky);
+  background: var(--butter);
 }
 
 .nav-pills {
@@ -160,7 +162,7 @@ a {
 .icon-button:hover,
 .action-card:hover {
   transform: translateY(-1px);
-  box-shadow: 0 8px 16px rgba(39, 42, 35, 0.1);
+  box-shadow: 0 8px 16px rgba(90, 51, 70, 0.12);
 }
 
 main {
@@ -182,7 +184,7 @@ main {
 .log-panel {
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.86);
+  background: rgba(255, 255, 255, 0.88);
   box-shadow: var(--shadow);
 }
 
@@ -201,12 +203,12 @@ main {
   position: absolute;
   inset: auto 0 0 0;
   height: 10px;
-  background: linear-gradient(90deg, var(--mint), var(--butter), var(--tomato), var(--sky));
+  background: linear-gradient(90deg, var(--rose), var(--butter), var(--mint), var(--plum));
 }
 
 .eyebrow {
   margin: 0 0 8px;
-  color: var(--leaf);
+  color: #b14f72;
   font-size: 0.76rem;
   font-weight: 800;
   letter-spacing: 0;
@@ -256,7 +258,7 @@ h3 {
   border: 3px solid var(--ink);
   border-radius: 8px;
   background: var(--surface);
-  box-shadow: 10px 10px 0 var(--mint);
+  box-shadow: 10px 10px 0 var(--rose);
 }
 
 .bento-visual::before,
@@ -356,7 +358,7 @@ h3 {
   width: 28%;
   height: 10px;
   border-radius: 99px;
-  background: var(--tomato);
+  background: var(--plum);
   transform: rotate(-16deg);
 }
 
@@ -425,7 +427,9 @@ h3 {
 .today-content,
 .meal-card,
 .ingredient-column,
-.log-item {
+.log-item,
+.routine-item,
+.chore-day {
   border: 1px solid rgba(32, 33, 35, 0.1);
   border-radius: 8px;
   background: var(--surface);
@@ -440,7 +444,7 @@ h3 {
 .today-meal {
   padding: 12px;
   border-radius: 8px;
-  background: #f7f4e9;
+  background: #fff1f6;
 }
 
 .today-meal strong {
@@ -456,7 +460,7 @@ h3 {
 
 .quick-actions {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 10px;
 }
 
@@ -475,12 +479,12 @@ h3 {
 }
 
 .danger-soft {
-  background: #fff0ed;
+  background: #ffe8ee;
 }
 
 .week-grid {
   display: grid;
-  grid-template-columns: repeat(7, minmax(140px, 1fr));
+  grid-template-columns: repeat(6, minmax(150px, 1fr));
   gap: 10px;
   overflow-x: auto;
   padding-bottom: 4px;
@@ -499,7 +503,7 @@ h3 {
   min-height: 38px;
   padding: 0 10px;
   border-radius: 8px;
-  background: var(--ink);
+  background: #8c5267;
   color: white;
   font-size: 0.92rem;
   font-weight: 900;
@@ -530,11 +534,11 @@ h3 {
 }
 
 .meal-card[data-kind="Lunch"] {
-  background: #f1fbf6;
+  background: #f7fff9;
 }
 
 .meal-card[data-kind="Dinner"] {
-  background: #fff8dc;
+  background: #fff1f5;
 }
 
 .meal-card.is-done {
@@ -580,6 +584,63 @@ h3 {
 .ingredient-column {
   min-height: 210px;
   overflow: hidden;
+}
+
+.routine-board,
+.chore-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.routine-board {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.chore-grid {
+  grid-template-columns: repeat(7, minmax(155px, 1fr));
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.chore-day {
+  display: grid;
+  min-width: 155px;
+  gap: 10px;
+  padding: 0 0 10px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.chore-list {
+  display: grid;
+  gap: 7px;
+  padding: 0 10px;
+}
+
+.routine-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 54px;
+  padding: 10px;
+  background: #fff8fb;
+}
+
+.routine-item input {
+  width: 18px;
+  height: 18px;
+  accent-color: #b14f72;
+}
+
+.routine-item span {
+  display: block;
+}
+
+.routine-item small {
+  display: block;
+  color: var(--muted);
+  line-height: 1.35;
 }
 
 .ingredient-column h3 {
@@ -641,6 +702,16 @@ h3 {
 .remove-button:hover {
   background: #fff0ed;
   color: var(--tomato);
+}
+
+.remove-button:disabled {
+  cursor: default;
+  opacity: 0.28;
+}
+
+.remove-button:disabled:hover {
+  background: transparent;
+  color: var(--muted);
 }
 
 .is-checked span,
@@ -795,8 +866,8 @@ a:focus-visible {
   min-height: 24px;
   padding: 0 8px;
   border-radius: 999px;
-  background: #eef8f1;
-  color: #315d47;
+  background: #fff0f5;
+  color: #8c5267;
   font-size: 0.76rem;
   font-weight: 900;
 }
@@ -849,7 +920,7 @@ a:focus-visible {
   }
 
   .quick-actions {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .mini-planner {
@@ -892,6 +963,7 @@ a:focus-visible {
 
   .quick-actions,
   .ingredient-board,
+  .routine-board,
   .inline-fields,
   .mini-planner {
     grid-template-columns: 1fr;

@@ -4,6 +4,10 @@ A local-first meal prep website based on the Gemini planning convo. It runs as a
 static site and saves meal logs, ingredient checks, and prep progress in browser
 localStorage on this machine.
 
+It also includes an apartment routine board for chores and life admin: dishes,
+laundry, hair wash, cleaning/vacuuming, meal prep, Legato work blocks, and the
+after-work social/rewind hour.
+
 It also has an optional AI planner. Paste an OpenAI API key into the AI Plan
 section to generate a new weekly plan from your saved pantry, fridge, freezer,
 kitchen assets, prep tasks, and meal logs. If you check "Remember key locally,"

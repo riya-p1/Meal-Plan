@@ -1,6 +1,8 @@
 const STORAGE_KEY = "apartment-meal-prep-v2";
 const OLD_STORAGE_KEY = "apartment-meal-prep-v1";
 const DEFAULT_MODEL = "gpt-5.6-sol";
+const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 
 const defaultPlan = {
   id: "corrected-sunday-friday-plan",
@@ -80,6 +82,97 @@ const defaultPlan = {
   prepTasks: ["Finish dosa batter Sunday night", "Boil eggs for Wednesday and Friday", "Set out glass boxes for Tue-Fri leftovers"],
 };
 
+const defaultRoutineTasks = [
+  {
+    id: "routine-rewind",
+    name: "Social / rewind hour",
+    category: "Social",
+    cadence: "weekdays",
+    day: "",
+    time: "After work",
+    notes: "1-2 hours after getting back from work: shower, chill, reply/social, decompress.",
+    doneDates: [],
+    locked: true,
+  },
+  {
+    id: "routine-legato",
+    name: "Work on Legato",
+    category: "Work",
+    cadence: "weekdays",
+    day: "",
+    time: "After rewind",
+    notes: "Focused project block after the shower/chill reset.",
+    doneDates: [],
+    locked: true,
+  },
+  {
+    id: "routine-dinner",
+    name: "Make dinner",
+    category: "Meals",
+    cadence: "daily",
+    day: "",
+    time: "Evening",
+    notes: "Use the meal plan when there is one; otherwise make the easiest viable dinner.",
+    doneDates: [],
+    locked: true,
+  },
+  {
+    id: "routine-lunch",
+    name: "Make or pack lunch",
+    category: "Meals",
+    cadence: "weekdays",
+    day: "",
+    time: "Night before",
+    notes: "Pack leftovers or assemble tomorrow's work lunch.",
+    doneDates: [],
+    locked: true,
+  },
+  {
+    id: "routine-dishes",
+    name: "Wash dishes",
+    category: "Home",
+    cadence: "daily",
+    day: "",
+    time: "Daily",
+    notes: "Quick sink reset so tomorrow starts cleaner.",
+    doneDates: [],
+    locked: true,
+  },
+  {
+    id: "routine-laundry",
+    name: "Do laundry",
+    category: "Home",
+    cadence: "weekly",
+    day: "Saturday",
+    time: "Late morning",
+    notes: "Run clothes, towels, and anything that needs drying time.",
+    doneDates: [],
+    locked: true,
+  },
+  {
+    id: "routine-hair",
+    name: "Wash hair",
+    category: "Care",
+    cadence: "weekly",
+    day: "Sunday",
+    time: "Evening",
+    notes: "Weekly hair wash and reset before the work week.",
+    doneDates: [],
+    locked: true,
+  },
+  {
+    id: "routine-clean",
+    name: "Clean / vacuum",
+    category: "Home",
+    cadence: "weekly",
+    day: "Sunday",
+    time: "Afternoon",
+    notes: "Vacuum, wipe surfaces, empty trash, and reset the apartment.",
+    doneDates: [],
+    locked: true,
+  },
+];
+
 const defaultState = {
   meals: {},
   currentPlan: structuredClone(defaultPlan),
@@ -122,6 +215,7 @@ const defaultState = {
   ],
   logs: [],
   mealLibrary: [],
+  routineTasks: structuredClone(defaultRoutineTasks),
   ai: {
     apiKey: "",
     model: DEFAULT_MODEL,
@@ -150,6 +244,9 @@ const elements = {
   weekGrid: document.querySelector("#week-grid"),
   ingredientBoard: document.querySelector("#ingredient-board"),
   ingredientForm: document.querySelector("#ingredient-form"),
+  routineBoard: document.querySelector("#routine-board"),
+  routineForm: document.querySelector("#routine-form"),
+  choreGrid: document.querySelector("#chore-grid"),
   aiPlanForm: document.querySelector("#ai-plan-form"),
   aiStatus: document.querySelector("#ai-status"),
   savedPlanList: document.querySelector("#saved-plan-list"),
@@ -194,6 +291,7 @@ function normalizeState(saved, fallback) {
     ingredients: Array.isArray(saved.ingredients) ? mergeIngredientDefaults(saved.ingredients) : fallback.ingredients,
     logs: Array.isArray(saved.logs) ? saved.logs : [],
     mealLibrary: Array.isArray(saved.mealLibrary) ? saved.mealLibrary : [],
+    routineTasks: Array.isArray(saved.routineTasks) ? mergeRoutineDefaults(saved.routineTasks) : fallback.routineTasks,
     ai: {
       ...fallback.ai,
       ...(saved.ai || {}),
@@ -219,6 +317,16 @@ function mergeIngredientDefaults(savedIngredients) {
   const defaults = defaultState.ingredients.map((item) => savedById.get(item.id) || item);
   const extras = savedIngredients.filter((item) => !defaultState.ingredients.some((defaultItem) => defaultItem.id === item.id));
   return [...defaults, ...extras];
+}
+
+function mergeRoutineDefaults(savedTasks) {
+  const savedById = new Map(savedTasks.map((item) => [item.id, item]));
+  const defaults = defaultRoutineTasks.map((item) => ({ ...item, ...(savedById.get(item.id) || {}) }));
+  const extras = savedTasks.filter((item) => !defaultRoutineTasks.some((defaultItem) => defaultItem.id === item.id));
+  return [...defaults, ...extras].map((item) => ({
+    ...item,
+    doneDates: Array.isArray(item.doneDates) ? item.doneDates : [],
+  }));
 }
 
 function saveState() {
@@ -347,6 +455,59 @@ function ingredientItem(item) {
   `;
 }
 
+function renderRoutine() {
+  const today = new Date();
+  const dayName = getDayName(today);
+  const dateKey = getDateKey(today);
+  const tasks = state.routineTasks.filter((task) => isTaskScheduled(task, dayName));
+
+  elements.routineBoard.innerHTML = tasks.length
+    ? tasks.map((task) => routineItem(task, dateKey, dayName)).join("")
+    : `<div class="empty-state">Nothing scheduled for today. Add a routine task to start tracking it.</div>`;
+}
+
+function renderChoreGrid() {
+  const weekDates = getCurrentWeekDates();
+  elements.choreGrid.innerHTML = weekDates
+    .map(({ date, day }) => {
+      const dateKey = getDateKey(date);
+      const tasks = state.routineTasks.filter((task) => isTaskScheduled(task, day));
+      return `
+        <div class="chore-day">
+          <div class="day-title">${day}<span>${tasks.filter((task) => isRoutineDone(task, dateKey)).length}/${tasks.length}</span></div>
+          <div class="chore-list">
+            ${
+              tasks.length
+                ? tasks.map((task) => routineItem(task, dateKey, day, true)).join("")
+                : `<div class="empty-state">No tasks.</div>`
+            }
+          </div>
+        </div>
+      `;
+    })
+    .join("");
+}
+
+function routineItem(task, dateKey, dayName, compact = false) {
+  const done = isRoutineDone(task, dateKey);
+  return `
+    <article class="routine-item ${done ? "is-checked" : ""}">
+      <input
+        type="checkbox"
+        data-routine-check="${task.id}"
+        data-routine-date="${dateKey}"
+        ${done ? "checked" : ""}
+        aria-label="Mark ${escapeHtml(task.name)} done for ${escapeHtml(dayName)}"
+      />
+      <span>
+        <span>${escapeHtml(task.name)}</span>
+        <small>${escapeHtml([task.category, task.time, compact ? "" : task.notes].filter(Boolean).join(" - "))}</small>
+      </span>
+      <button class="remove-button" type="button" data-routine-remove="${task.id}" title="Remove ${escapeHtml(task.name)}" aria-label="Remove ${escapeHtml(task.name)}" ${task.locked ? "disabled" : ""}>x</button>
+    </article>
+  `;
+}
+
 function renderSavedPlans() {
   if (!state.savedPlans.length) {
     elements.savedPlanList.innerHTML = `<div class="empty-state">Generated plans will land here.</div>`;
@@ -449,6 +610,8 @@ function renderAiSettings() {
 
 function renderAll() {
   renderToday();
+  renderRoutine();
+  renderChoreGrid();
   renderWeek();
   renderIngredients();
   renderMealLibrary();
@@ -540,8 +703,8 @@ const mealPlanSchema = {
     prepTasks: { type: "array", items: { type: "string" } },
     days: {
       type: "array",
-      minItems: 7,
-      maxItems: 7,
+      minItems: 6,
+      maxItems: 6,
       items: {
         type: "object",
         additionalProperties: false,
@@ -737,6 +900,52 @@ function capitalize(value) {
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
+function getDayName(date) {
+  return DAY_NAMES[date.getDay()];
+}
+
+function getDateKey(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function getCurrentWeekDates() {
+  const today = new Date();
+  const sunday = new Date(today);
+  sunday.setDate(today.getDate() - today.getDay());
+  return DAY_NAMES.map((day, index) => {
+    const date = new Date(sunday);
+    date.setDate(sunday.getDate() + index);
+    return { day, date };
+  });
+}
+
+function isTaskScheduled(task, dayName) {
+  if (task.cadence === "daily") return true;
+  if (task.cadence === "weekdays") return WEEKDAYS.includes(dayName);
+  if (task.cadence === "weekly" || task.cadence === "custom") return task.day === dayName;
+  return false;
+}
+
+function isRoutineDone(task, dateKey) {
+  return task.doneDates?.includes(dateKey);
+}
+
+function toggleRoutine(taskId, dateKey, checked) {
+  const task = state.routineTasks.find((item) => item.id === taskId);
+  if (!task) return;
+  task.doneDates ||= [];
+  if (checked && !task.doneDates.includes(dateKey)) {
+    task.doneDates.push(dateKey);
+  }
+  if (!checked) {
+    task.doneDates = task.doneDates.filter((item) => item !== dateKey);
+  }
+  saveState();
+}
+
 function formatDate(value) {
   const [year, month, day] = value.split("-").map(Number);
   return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(
@@ -826,12 +1035,31 @@ document.addEventListener("click", (event) => {
     return;
   }
 
+  const routineCheck = event.target.closest("[data-routine-check]");
+  if (routineCheck) {
+    toggleRoutine(routineCheck.dataset.routineCheck, routineCheck.dataset.routineDate, routineCheck.checked);
+    renderRoutine();
+    renderChoreGrid();
+    showToast(routineCheck.checked ? "Task logged." : "Task unchecked.");
+    return;
+  }
+
   const ingredientRemove = event.target.closest("[data-ingredient-remove]");
   if (ingredientRemove) {
     state.ingredients = state.ingredients.filter((item) => item.id !== ingredientRemove.dataset.ingredientRemove);
     saveState();
     renderIngredients();
     showToast("Ingredient removed.");
+    return;
+  }
+
+  const routineRemove = event.target.closest("[data-routine-remove]");
+  if (routineRemove && !routineRemove.disabled) {
+    state.routineTasks = state.routineTasks.filter((task) => task.id !== routineRemove.dataset.routineRemove);
+    saveState();
+    renderRoutine();
+    renderChoreGrid();
+    showToast("Routine task removed.");
     return;
   }
 
@@ -880,6 +1108,29 @@ elements.ingredientForm.addEventListener("submit", (event) => {
   elements.ingredientForm.reset();
   renderIngredients();
   showToast("Ingredient or asset added.");
+});
+
+elements.routineForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const formData = new FormData(elements.routineForm);
+  const cadence = formData.get("cadence");
+  const day = formData.get("day");
+  state.routineTasks.push({
+    id: makeId("routine"),
+    name: String(formData.get("name")).trim(),
+    category: formData.get("category"),
+    cadence,
+    day: cadence === "daily" || cadence === "weekdays" ? "" : day,
+    time: String(formData.get("time")).trim(),
+    notes: String(formData.get("notes")).trim(),
+    doneDates: [],
+    locked: false,
+  });
+  saveState();
+  elements.routineForm.reset();
+  renderRoutine();
+  renderChoreGrid();
+  showToast("Routine task saved.");
 });
 
 elements.aiPlanForm.addEventListener("submit", generatePlan);
@@ -963,6 +1214,11 @@ document.querySelector("#add-ingredient").addEventListener("click", () => {
   document.querySelector("#ingredient-name").focus({ preventScroll: true });
 });
 
+document.querySelector("#open-routine").addEventListener("click", () => {
+  document.querySelector("#routine").scrollIntoView({ behavior: "smooth" });
+  document.querySelector("#routine-name").focus({ preventScroll: true });
+});
+
 document.querySelector("#open-meals").addEventListener("click", () => {
   document.querySelector("#custom-meals").scrollIntoView({ behavior: "smooth" });
   document.querySelector("#custom-meal-title").focus({ preventScroll: true });
@@ -999,6 +1255,16 @@ document.querySelector("#clear-logs").addEventListener("click", () => {
     saveState();
     renderLogs();
     showToast("Meal logs cleared.");
+  }
+});
+
+document.querySelector("#clear-routine-log").addEventListener("click", () => {
+  if (window.confirm("Clear all task check-off history? The task list will stay.")) {
+    state.routineTasks = state.routineTasks.map((task) => ({ ...task, doneDates: [] }));
+    saveState();
+    renderRoutine();
+    renderChoreGrid();
+    showToast("Task log cleared.");
   }
 });
 

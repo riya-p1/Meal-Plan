@@ -3,30 +3,31 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Apartment Meal Prep</title>
+    <title>Apartment Home HQ</title>
     <meta
       name="description"
-      content="A cute local-first meal prep planner for weekly meals, leftovers, ingredients, and shopping."
+      content="A pink apartment dashboard for meal prep, chores, routines, and weekly planning."
     />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <div class="app-shell">
       <header class="topbar">
-        <a class="brand" href="#today" aria-label="Apartment Meal Prep home">
+        <a class="brand" href="#today" aria-label="Apartment Home HQ">
           <span class="brand-mark" aria-hidden="true">
             <span></span>
             <span></span>
             <span></span>
           </span>
           <span>
-            <strong>Apartment Meal Prep</strong>
-            <small>cook once, eat twice</small>
+            <strong>Apartment Home HQ</strong>
+            <small>soft life command center</small>
           </span>
         </a>
 
         <nav class="nav-pills" aria-label="Main sections">
           <a href="#today">Today</a>
+          <a href="#routine">Routine</a>
           <a href="#week">Week</a>
           <a href="#ingredients">Ingredients</a>
           <a href="#custom-meals">Meals</a>
@@ -39,11 +40,11 @@
         <section class="dashboard" id="today">
           <div class="intro-panel">
             <div>
-              <p class="eyebrow">Next-week plan from your Gemini convo</p>
-              <h1>Your tiny local prep desk</h1>
+              <p class="eyebrow">Apartment homepage</p>
+              <h1>Soft launch your week</h1>
               <p>
-                Sunday dinner through Friday dinner, with one fast-casual dinner
-                and next-day leftovers locked into the rhythm.
+                Meals, chores, Legato time, laundry, dishes, and your after-work
+                rewind hour in one pink little command center.
               </p>
             </div>
 
@@ -72,6 +73,10 @@
         </section>
 
         <section class="quick-actions" aria-label="Quick actions">
+          <button class="action-card" id="open-routine" type="button">
+            <span aria-hidden="true">T</span>
+            Log task
+          </button>
           <button class="action-card" id="open-log" type="button">
             <span aria-hidden="true">+</span>
             Log a meal
@@ -96,6 +101,82 @@
             <span aria-hidden="true">R</span>
             Reset
           </button>
+        </section>
+
+        <section class="section two-column" id="routine">
+          <div>
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Chore chart</p>
+                <h2>Today's apartment rhythm</h2>
+              </div>
+              <p class="section-note">Check things off as you do them; the log is saved locally.</p>
+            </div>
+            <div class="routine-board" id="routine-board"></div>
+          </div>
+
+          <form class="form-card" id="routine-form">
+            <p class="eyebrow">Add your own</p>
+            <h3>Routine task</h3>
+            <label>
+              Task
+              <input id="routine-name" name="name" type="text" placeholder="ex: take out trash, call home" required />
+            </label>
+            <label>
+              Category
+              <select id="routine-category" name="category">
+                <option>Home</option>
+                <option>Meals</option>
+                <option>Care</option>
+                <option>Work</option>
+                <option>Social</option>
+              </select>
+            </label>
+            <div class="inline-fields">
+              <label>
+                Cadence
+                <select id="routine-cadence" name="cadence">
+                  <option value="daily">Daily</option>
+                  <option value="weekdays">Weekdays</option>
+                  <option value="weekly">Weekly</option>
+                  <option value="custom">Custom day</option>
+                </select>
+              </label>
+              <label>
+                Day
+                <select id="routine-day" name="day">
+                  <option value="">Any</option>
+                  <option>Sunday</option>
+                  <option>Monday</option>
+                  <option>Tuesday</option>
+                  <option>Wednesday</option>
+                  <option>Thursday</option>
+                  <option>Friday</option>
+                  <option>Saturday</option>
+                </select>
+              </label>
+            </div>
+            <label>
+              Time
+              <input id="routine-time" name="time" type="text" placeholder="ex: 6:30 PM, after work, before bed" />
+            </label>
+            <label>
+              Notes
+              <textarea id="routine-notes" name="notes" rows="3" placeholder="ex: 1-2 hour shower/chill/social reset after work"></textarea>
+            </label>
+            <button class="primary-button" type="submit">Save routine task</button>
+          </form>
+        </section>
+
+        <section class="section" id="routine-week">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Weekly view</p>
+              <h2>Apartment chore chart</h2>
+            </div>
+            <button class="small-button" id="clear-routine-log" type="button">Clear task log</button>
+          </div>
+          <div class="chore-grid" id="chore-grid"></div>
         </section>
 
         <section class="section" id="week">
