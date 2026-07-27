@@ -251,6 +251,7 @@ const elements = {
   aiStatus: document.querySelector("#ai-status"),
   savedPlanList: document.querySelector("#saved-plan-list"),
   customMealForm: document.querySelector("#custom-meal-form"),
+  customMealId: document.querySelector("#custom-meal-id"),
   placeMealForm: document.querySelector("#place-meal-form"),
   mealLibraryList: document.querySelector("#meal-library-list"),
   placeMealSelect: document.querySelector("#place-meal-select"),
@@ -563,7 +564,10 @@ function renderMealLibrary() {
               <strong>${escapeHtml(meal.title)}</strong>
               <p>${escapeHtml(meal.kind || "Meal")} - ${formatTimestamp(meal.createdAt)}</p>
             </div>
-            <button class="remove-button" type="button" data-meal-remove="${meal.id}" title="Remove meal" aria-label="Remove meal">x</button>
+            <div class="item-actions">
+              <button class="small-button" type="button" data-meal-edit="${meal.id}">Edit</button>
+              <button class="remove-button" type="button" data-meal-remove="${meal.id}" title="Remove meal" aria-label="Remove meal">x</button>
+            </div>
           </header>
           ${meal.ingredients ? `<p><strong>Uses:</strong> ${escapeHtml(meal.ingredients)}</p>` : ""}
           ${meal.note ? `<p>${escapeHtml(meal.note)}</p>` : ""}
@@ -878,7 +882,8 @@ function saveGeneratedPlan(plan) {
 
 function applyMealToWeek(mealId, dayName, kind) {
   const meal = state.mealLibrary.find((item) => item.id === mealId);
-  const day = state.currentPlan.days.find((item) => item.day === dayName);
+  const sourcePlan = structuredClone(state.currentPlan);
+  const day = sourcePlan.days.find((item) => item.day === dayName);
   if (!meal || !day) return false;
 
   const slot = kind.toLowerCase();
@@ -886,17 +891,41 @@ function applyMealToWeek(mealId, dayName, kind) {
     title: meal.title,
     note: meal.note || (meal.ingredients ? `Uses: ${meal.ingredients}` : "Custom meal from your saved library."),
   };
-  state.currentPlan = {
-    ...state.currentPlan,
+  const customizedPlan = {
+    ...sourcePlan,
+    id: makeId("custom-plan"),
+    title: sourcePlan.title || "Customized weekly plan",
     source: "Customized locally",
-    note: "Customized with your saved meals.",
+    createdAt: Date.now(),
+    note: `${meal.title} placed on ${dayName} ${kind}.`,
   };
-  state.savedPlans = [
-    structuredClone(state.currentPlan),
-    ...state.savedPlans.filter((plan) => plan.id !== state.currentPlan.id),
-  ].slice(0, 12);
+  state.currentPlan = customizedPlan;
+  state.savedPlans = [structuredClone(customizedPlan), ...state.savedPlans].slice(0, 12);
   saveState();
   return true;
+}
+
+function editMeal(mealId) {
+  const meal = state.mealLibrary.find((item) => item.id === mealId);
+  if (!meal) return false;
+
+  elements.customMealId.value = meal.id;
+  document.querySelector("#custom-meal-title").value = meal.title || "";
+  document.querySelector("#custom-meal-kind").value = meal.kind || "Dinner";
+  document.querySelector("#custom-meal-ingredients").value = meal.ingredients || "";
+  document.querySelector("#custom-meal-note").value = meal.note || "";
+  document.querySelector("#custom-meal-leftovers").checked = Boolean(meal.leftovers);
+  elements.customMealForm.querySelector(".primary-button").textContent = "Update custom meal";
+  document.querySelector("#custom-meals").scrollIntoView({ behavior: "smooth" });
+  document.querySelector("#custom-meal-note").focus({ preventScroll: true });
+  return true;
+}
+
+function resetCustomMealForm() {
+  elements.customMealForm.reset();
+  elements.customMealId.value = "";
+  document.querySelector("#custom-meal-leftovers").checked = true;
+  elements.customMealForm.querySelector(".primary-button").textContent = "Save custom meal";
 }
 
 function capitalize(value) {
@@ -1075,6 +1104,13 @@ document.addEventListener("click", (event) => {
     return;
   }
 
+  const mealEdit = event.target.closest("[data-meal-edit]");
+  if (mealEdit) {
+    editMeal(mealEdit.dataset.mealEdit);
+    showToast("Meal ready to edit.");
+    return;
+  }
+
   const planApply = event.target.closest("[data-plan-apply]");
   if (planApply) {
     const plan = state.savedPlans.find((savedPlan) => savedPlan.id === planApply.dataset.planApply);
@@ -1141,8 +1177,11 @@ elements.aiPlanForm.addEventListener("submit", generatePlan);
 elements.customMealForm.addEventListener("submit", (event) => {
   event.preventDefault();
   const formData = new FormData(elements.customMealForm);
+  const mealId = String(formData.get("mealId") || "").trim();
   const title = String(formData.get("title")).trim();
-  const existing = state.mealLibrary.find((meal) => meal.title.toLowerCase() === title.toLowerCase());
+  const existing =
+    state.mealLibrary.find((meal) => meal.id === mealId) ||
+    state.mealLibrary.find((meal) => meal.title.toLowerCase() === title.toLowerCase());
   const meal = {
     id: existing?.id || makeId("meal"),
     title,
@@ -1156,8 +1195,7 @@ elements.customMealForm.addEventListener("submit", (event) => {
   };
   state.mealLibrary = [meal, ...state.mealLibrary.filter((item) => item.id !== meal.id)];
   saveState();
-  elements.customMealForm.reset();
-  document.querySelector("#custom-meal-leftovers").checked = true;
+  resetCustomMealForm();
   renderMealLibrary();
   showToast(existing ? "Custom meal updated." : "Custom meal saved.");
 });
