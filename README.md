@@ -8,6 +8,9 @@ It also includes an apartment routine board for chores and life admin: dishes,
 laundry, hair wash, cleaning/vacuuming, meal prep, Legato work blocks, and the
 after-work social/rewind hour.
 
+The pink aesthetic homepage uses non-AI source photos from Unsplash/Pexels; see
+`ATTRIBUTION.md`.
+
 It also has an optional AI planner. Paste an OpenAI API key into the AI Plan
 section to generate a new weekly plan from your saved pantry, fridge, freezer,
 kitchen assets, prep tasks, and meal logs. If you check "Remember key locally,"

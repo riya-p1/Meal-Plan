@@ -8,6 +8,7 @@ const files = {
   "/styles.css": read("styles.css"),
   "/app.js": read("app.js"),
   "/README.md": read("README.md"),
+  "/ATTRIBUTION.md": read("ATTRIBUTION.md"),
 };
 
 const worker = `const FILES = new Map(${JSON.stringify(Object.entries(files))});
