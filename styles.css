@@ -1107,14 +1107,22 @@ a:focus-visible {
   gap: 10px;
 }
 
-#custom-meals .log-panel {
+#custom-meals .log-panel,
+#ai-planner .log-panel,
+#log .log-panel,
+#routine > div:first-child,
+#ingredients > div:first-child {
   display: flex;
-  max-height: min(760px, calc(100vh - 96px));
+  max-height: min(640px, calc(100vh - 140px));
   flex-direction: column;
   overflow: hidden;
 }
 
-#custom-meals .meal-library-list {
+#custom-meals .meal-library-list,
+#ai-planner .saved-plan-list,
+#log .log-list,
+#routine .routine-board,
+#ingredients .ingredient-board {
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -1123,16 +1131,28 @@ a:focus-visible {
   scrollbar-width: thin;
 }
 
-#custom-meals .meal-library-list::-webkit-scrollbar {
+#custom-meals .meal-library-list::-webkit-scrollbar,
+#ai-planner .saved-plan-list::-webkit-scrollbar,
+#log .log-list::-webkit-scrollbar,
+#routine .routine-board::-webkit-scrollbar,
+#ingredients .ingredient-board::-webkit-scrollbar {
   width: 10px;
 }
 
-#custom-meals .meal-library-list::-webkit-scrollbar-track {
+#custom-meals .meal-library-list::-webkit-scrollbar-track,
+#ai-planner .saved-plan-list::-webkit-scrollbar-track,
+#log .log-list::-webkit-scrollbar-track,
+#routine .routine-board::-webkit-scrollbar-track,
+#ingredients .ingredient-board::-webkit-scrollbar-track {
   border-radius: 999px;
   background: #fff1f6;
 }
 
-#custom-meals .meal-library-list::-webkit-scrollbar-thumb {
+#custom-meals .meal-library-list::-webkit-scrollbar-thumb,
+#ai-planner .saved-plan-list::-webkit-scrollbar-thumb,
+#log .log-list::-webkit-scrollbar-thumb,
+#routine .routine-board::-webkit-scrollbar-thumb,
+#ingredients .ingredient-board::-webkit-scrollbar-thumb {
   border: 2px solid #fff1f6;
   border-radius: 999px;
   background: #d89aac;

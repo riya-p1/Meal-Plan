@@ -216,12 +216,17 @@ const defaultState = {
   logs: [],
   mealLibrary: [],
   routineTasks: structuredClone(defaultRoutineTasks),
+  removedDefaultIngredientIds: [],
+  removedDefaultRoutineTaskIds: [],
   ai: {
     apiKey: "",
     model: DEFAULT_MODEL,
     lastPrompt: "",
   },
 };
+
+const defaultIngredientIds = new Set(defaultState.ingredients.map((item) => item.id));
+const defaultRoutineTaskIds = new Set(defaultRoutineTasks.map((item) => item.id));
 
 const bucketMeta = {
   buy: { title: "Need to buy", color: "#fff0ed" },
@@ -283,16 +288,32 @@ function readJson(key) {
 }
 
 function normalizeState(saved, fallback) {
+  const removedDefaultIngredientIds = removedDefaultIdsFromSavedState(
+    saved.removedDefaultIngredientIds,
+    defaultState.ingredients,
+    saved.ingredients,
+  );
+  const removedDefaultRoutineTaskIds = removedDefaultIdsFromSavedState(
+    saved.removedDefaultRoutineTaskIds,
+    defaultRoutineTasks,
+    saved.routineTasks,
+  );
   const normalized = {
     ...fallback,
     ...saved,
     meals: saved.meals || {},
     currentPlan: saved.currentPlan?.days ? saved.currentPlan : fallback.currentPlan,
     savedPlans: Array.isArray(saved.savedPlans) && saved.savedPlans.length ? saved.savedPlans : fallback.savedPlans,
-    ingredients: Array.isArray(saved.ingredients) ? mergeIngredientDefaults(saved.ingredients) : fallback.ingredients,
+    ingredients: Array.isArray(saved.ingredients)
+      ? mergeIngredientDefaults(saved.ingredients, removedDefaultIngredientIds)
+      : fallback.ingredients,
     logs: Array.isArray(saved.logs) ? saved.logs : [],
     mealLibrary: Array.isArray(saved.mealLibrary) ? saved.mealLibrary : [],
-    routineTasks: Array.isArray(saved.routineTasks) ? mergeRoutineDefaults(saved.routineTasks) : fallback.routineTasks,
+    routineTasks: Array.isArray(saved.routineTasks)
+      ? mergeRoutineDefaults(saved.routineTasks, removedDefaultRoutineTaskIds)
+      : fallback.routineTasks,
+    removedDefaultIngredientIds,
+    removedDefaultRoutineTaskIds,
     ai: {
       ...fallback.ai,
       ...(saved.ai || {}),
@@ -313,16 +334,34 @@ function normalizeState(saved, fallback) {
   return normalized;
 }
 
-function mergeIngredientDefaults(savedIngredients) {
+function removedDefaultIdsFromSavedState(savedRemovedIds, defaultItems, savedItems) {
+  if (Array.isArray(savedRemovedIds)) {
+    const defaultIds = new Set(defaultItems.map((item) => item.id));
+    return savedRemovedIds.filter((id) => defaultIds.has(id));
+  }
+
+  if (!Array.isArray(savedItems)) return [];
+
+  const savedIds = new Set(savedItems.map((item) => item.id));
+  return defaultItems.filter((item) => !savedIds.has(item.id)).map((item) => item.id);
+}
+
+function mergeIngredientDefaults(savedIngredients, removedDefaultIds = []) {
   const savedById = new Map(savedIngredients.map((item) => [item.id, item]));
-  const defaults = defaultState.ingredients.map((item) => savedById.get(item.id) || item);
+  const removedIds = new Set(removedDefaultIds);
+  const defaults = defaultState.ingredients
+    .filter((item) => !removedIds.has(item.id))
+    .map((item) => savedById.get(item.id) || item);
   const extras = savedIngredients.filter((item) => !defaultState.ingredients.some((defaultItem) => defaultItem.id === item.id));
   return [...defaults, ...extras];
 }
 
-function mergeRoutineDefaults(savedTasks) {
+function mergeRoutineDefaults(savedTasks, removedDefaultIds = []) {
   const savedById = new Map(savedTasks.map((item) => [item.id, item]));
-  const defaults = defaultRoutineTasks.map((item) => ({ ...item, ...(savedById.get(item.id) || {}) }));
+  const removedIds = new Set(removedDefaultIds);
+  const defaults = defaultRoutineTasks
+    .filter((item) => !removedIds.has(item.id))
+    .map((item) => ({ ...item, ...(savedById.get(item.id) || {}) }));
   const extras = savedTasks.filter((item) => !defaultRoutineTasks.some((defaultItem) => defaultItem.id === item.id));
   return [...defaults, ...extras].map((item) => ({
     ...item,
@@ -883,6 +922,7 @@ function saveGeneratedPlan(plan) {
 function applyMealToWeek(mealId, dayName, kind) {
   const meal = state.mealLibrary.find((item) => item.id === mealId);
   const sourcePlan = structuredClone(state.currentPlan);
+  const previousPlanId = state.currentPlan.id;
   const day = sourcePlan.days.find((item) => item.day === dayName);
   if (!meal || !day) return false;
 
@@ -900,9 +940,23 @@ function applyMealToWeek(mealId, dayName, kind) {
     note: `${meal.title} placed on ${dayName} ${kind}.`,
   };
   state.currentPlan = customizedPlan;
+  carryMealStateToCustomizedPlan(previousPlanId, customizedPlan.id, dayName, kind);
   state.savedPlans = [structuredClone(customizedPlan), ...state.savedPlans].slice(0, 12);
   saveState();
   return true;
+}
+
+function carryMealStateToCustomizedPlan(previousPlanId, nextPlanId, replacedDay, replacedKind) {
+  state.currentPlan.days.forEach((day) => {
+    ["Lunch", "Dinner"].forEach((kind) => {
+      if (day.day === replacedDay && kind === replacedKind) return;
+      const previousKey = `${previousPlanId}-${day.day}-${kind}`;
+      const nextKey = `${nextPlanId}-${day.day}-${kind}`;
+      if (state.meals[previousKey]) {
+        state.meals[nextKey] = { ...state.meals[previousKey] };
+      }
+    });
+  });
 }
 
 function editMeal(mealId) {
@@ -1078,7 +1132,11 @@ document.addEventListener("click", (event) => {
 
   const ingredientRemove = event.target.closest("[data-ingredient-remove]");
   if (ingredientRemove) {
-    state.ingredients = state.ingredients.filter((item) => item.id !== ingredientRemove.dataset.ingredientRemove);
+    const ingredientId = ingredientRemove.dataset.ingredientRemove;
+    if (defaultIngredientIds.has(ingredientId) && !state.removedDefaultIngredientIds.includes(ingredientId)) {
+      state.removedDefaultIngredientIds.push(ingredientId);
+    }
+    state.ingredients = state.ingredients.filter((item) => item.id !== ingredientId);
     saveState();
     renderIngredients();
     showToast("Ingredient removed.");
@@ -1087,7 +1145,11 @@ document.addEventListener("click", (event) => {
 
   const routineRemove = event.target.closest("[data-routine-remove]");
   if (routineRemove) {
-    state.routineTasks = state.routineTasks.filter((task) => task.id !== routineRemove.dataset.routineRemove);
+    const routineTaskId = routineRemove.dataset.routineRemove;
+    if (defaultRoutineTaskIds.has(routineTaskId) && !state.removedDefaultRoutineTaskIds.includes(routineTaskId)) {
+      state.removedDefaultRoutineTaskIds.push(routineTaskId);
+    }
+    state.routineTasks = state.routineTasks.filter((task) => task.id !== routineTaskId);
     saveState();
     renderRoutine();
     renderChoreGrid();
@@ -1283,6 +1345,14 @@ document.querySelector("#copy-ai-prompt").addEventListener("click", () => {
 });
 
 document.querySelector("#clear-bought").addEventListener("click", () => {
+  const boughtDefaultIds = state.ingredients
+    .filter((item) => item.bucket === "buy" && item.checked && defaultIngredientIds.has(item.id))
+    .map((item) => item.id);
+  boughtDefaultIds.forEach((id) => {
+    if (!state.removedDefaultIngredientIds.includes(id)) {
+      state.removedDefaultIngredientIds.push(id);
+    }
+  });
   state.ingredients = state.ingredients.filter((item) => !(item.bucket === "buy" && item.checked));
   saveState();
   renderIngredients();
