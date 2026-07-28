@@ -1107,6 +1107,37 @@ a:focus-visible {
   gap: 10px;
 }
 
+#custom-meals .log-panel {
+  display: flex;
+  max-height: min(760px, calc(100vh - 96px));
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#custom-meals .meal-library-list {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 6px;
+  scrollbar-color: #d89aac #fff1f6;
+  scrollbar-width: thin;
+}
+
+#custom-meals .meal-library-list::-webkit-scrollbar {
+  width: 10px;
+}
+
+#custom-meals .meal-library-list::-webkit-scrollbar-track {
+  border-radius: 999px;
+  background: #fff1f6;
+}
+
+#custom-meals .meal-library-list::-webkit-scrollbar-thumb {
+  border: 2px solid #fff1f6;
+  border-radius: 999px;
+  background: #d89aac;
+}
+
 .log-item,
 .saved-plan,
 .library-meal {
