@@ -873,7 +873,7 @@ h3 {
 
 .ingredient-board {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 12px;
   align-items: start;
   padding-bottom: 4px;
@@ -1110,19 +1110,24 @@ a:focus-visible {
 #custom-meals .log-panel,
 #ai-planner .log-panel,
 #log .log-panel,
-#routine > div:first-child,
-#ingredients > div:first-child {
+#routine > div:first-child {
   display: flex;
   max-height: min(640px, calc(100vh - 140px));
   flex-direction: column;
   overflow: hidden;
 }
 
+#ingredients .ingredient-column {
+  display: flex;
+  max-height: 320px;
+  flex-direction: column;
+}
+
 #custom-meals .meal-library-list,
 #ai-planner .saved-plan-list,
 #log .log-list,
 #routine .routine-board,
-#ingredients .ingredient-board {
+#ingredients .ingredient-list {
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -1135,7 +1140,7 @@ a:focus-visible {
 #ai-planner .saved-plan-list::-webkit-scrollbar,
 #log .log-list::-webkit-scrollbar,
 #routine .routine-board::-webkit-scrollbar,
-#ingredients .ingredient-board::-webkit-scrollbar {
+#ingredients .ingredient-list::-webkit-scrollbar {
   width: 10px;
 }
 
@@ -1143,7 +1148,7 @@ a:focus-visible {
 #ai-planner .saved-plan-list::-webkit-scrollbar-track,
 #log .log-list::-webkit-scrollbar-track,
 #routine .routine-board::-webkit-scrollbar-track,
-#ingredients .ingredient-board::-webkit-scrollbar-track {
+#ingredients .ingredient-list::-webkit-scrollbar-track {
   border-radius: 999px;
   background: #fff1f6;
 }
@@ -1152,7 +1157,7 @@ a:focus-visible {
 #ai-planner .saved-plan-list::-webkit-scrollbar-thumb,
 #log .log-list::-webkit-scrollbar-thumb,
 #routine .routine-board::-webkit-scrollbar-thumb,
-#ingredients .ingredient-board::-webkit-scrollbar-thumb {
+#ingredients .ingredient-list::-webkit-scrollbar-thumb {
   border: 2px solid #fff1f6;
   border-radius: 999px;
   background: #d89aac;
