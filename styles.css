@@ -962,6 +962,7 @@ h3 {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 10px;
   min-height: 42px;
   margin: 0;
   padding: 0 12px;
@@ -1003,6 +1004,60 @@ h3 {
   color: var(--muted);
   font-size: 0.82rem;
   line-height: 1.35;
+}
+
+.ingredient-copy {
+  display: grid;
+  gap: 3px;
+}
+
+.ingredient-item.is-expired,
+.ingredient-item.expires-today,
+.ingredient-item.expires-soon {
+  box-shadow: inset 4px 0 0 #d56b83;
+}
+
+.expiry-badge {
+  display: inline-flex;
+  width: fit-content;
+  min-height: 22px;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #fff0f5;
+  color: #8c5267;
+  font-size: 0.74rem;
+  font-weight: 900;
+}
+
+.expiry-badge.is-expired {
+  background: #ffe2df;
+  color: #9b2f3d;
+}
+
+.expiry-badge.expires-today,
+.expiry-badge.expires-soon,
+.warning-tag {
+  background: #ffe7af;
+  color: #7a4b00;
+}
+
+.expiry-badge.expires-later {
+  background: #edf7ef;
+  color: #426d52;
+}
+
+.expiry-input {
+  grid-column: 2 / -1;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.expiry-input input {
+  min-height: 34px;
+  padding: 7px 8px;
+  font-size: 0.78rem;
 }
 
 .remove-button {

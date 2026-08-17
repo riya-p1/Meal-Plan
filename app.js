@@ -464,11 +464,18 @@ function renderIngredients() {
   const buckets = Object.keys(bucketMeta);
   elements.ingredientBoard.innerHTML = buckets
     .map((bucket) => {
-      const items = state.ingredients.filter((item) => item.bucket === bucket);
+      const items = state.ingredients.filter((item) => item.bucket === bucket).sort(sortIngredients);
       const meta = bucketMeta[bucket];
+      const expiringCount = items.filter((item) => !item.checked && isIngredientExpiringSoon(item)).length;
       return `
         <section class="ingredient-column" style="background: ${meta.color}">
-          <h3>${meta.title}<span class="tag">${items.filter((item) => !item.checked).length}</span></h3>
+          <h3>
+            ${meta.title}
+            <span class="tag-row">
+              ${expiringCount ? `<span class="tag warning-tag">${expiringCount} use soon</span>` : ""}
+              <span class="tag">${items.filter((item) => !item.checked).length}</span>
+            </span>
+          </h3>
           <div class="ingredient-list">
             ${
               items.length
@@ -483,16 +490,64 @@ function renderIngredients() {
 }
 
 function ingredientItem(item) {
+  const expiration = getExpirationMeta(item.expiresAt);
   return `
-    <article class="ingredient-item ${item.checked ? "is-checked" : ""}">
+    <article class="ingredient-item ${item.checked ? "is-checked" : ""} ${expiration?.className || ""}">
       <input type="checkbox" data-ingredient-check="${item.id}" ${item.checked ? "checked" : ""} aria-label="Mark ${escapeHtml(item.name)} complete" />
-      <span>
+      <span class="ingredient-copy">
         <span>${escapeHtml(item.name)}</span>
         <small>${escapeHtml(item.amount || "No note")}</small>
+        ${expiration ? `<span class="expiry-badge ${expiration.className}">${escapeHtml(expiration.label)}</span>` : ""}
       </span>
+      <label class="expiry-input">
+        <span>Expires</span>
+        <input type="date" data-ingredient-expiration="${item.id}" value="${escapeHtml(item.expiresAt || "")}" aria-label="Expiration date for ${escapeHtml(item.name)}" />
+      </label>
       <button class="remove-button" type="button" data-ingredient-remove="${item.id}" title="Remove ${escapeHtml(item.name)}" aria-label="Remove ${escapeHtml(item.name)}">x</button>
     </article>
   `;
+}
+
+function sortIngredients(a, b) {
+  const aMeta = getExpirationMeta(a.expiresAt);
+  const bMeta = getExpirationMeta(b.expiresAt);
+  const aRank = a.checked ? 9 : (aMeta?.rank ?? 5);
+  const bRank = b.checked ? 9 : (bMeta?.rank ?? 5);
+  if (aRank !== bRank) return aRank - bRank;
+  if (a.expiresAt && b.expiresAt && a.expiresAt !== b.expiresAt) return a.expiresAt.localeCompare(b.expiresAt);
+  if (a.checked !== b.checked) return a.checked ? 1 : -1;
+  return a.name.localeCompare(b.name);
+}
+
+function isIngredientExpiringSoon(item) {
+  const meta = getExpirationMeta(item.expiresAt);
+  return Boolean(meta && meta.daysUntil <= 4);
+}
+
+function getExpirationMeta(expiresAt) {
+  if (!expiresAt) return null;
+  const date = parseLocalDate(expiresAt);
+  if (!date) return null;
+  const today = startOfToday();
+  const daysUntil = Math.round((date - today) / 86400000);
+  if (daysUntil < 0) {
+    return { daysUntil, rank: 0, className: "is-expired", label: `expired ${Math.abs(daysUntil)} day${Math.abs(daysUntil) === 1 ? "" : "s"} ago` };
+  }
+  if (daysUntil === 0) return { daysUntil, rank: 1, className: "expires-today", label: "expires today" };
+  if (daysUntil === 1) return { daysUntil, rank: 2, className: "expires-soon", label: "expires tomorrow" };
+  if (daysUntil <= 4) return { daysUntil, rank: 3, className: "expires-soon", label: `expires in ${daysUntil} days` };
+  return { daysUntil, rank: 4, className: "expires-later", label: `expires ${formatDate(expiresAt)}` };
+}
+
+function parseLocalDate(value) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(value || ""))) return null;
+  const [year, month, day] = value.split("-").map(Number);
+  return new Date(year, month - 1, day);
+}
+
+function startOfToday() {
+  const today = new Date();
+  return new Date(today.getFullYear(), today.getMonth(), today.getDate());
 }
 
 function renderRoutine() {
@@ -691,7 +746,10 @@ function buildAiPrompt(notes, takeoutNights) {
     .map((bucket) => {
       const items = state.ingredients
         .filter((item) => item.bucket === bucket && !item.checked)
-        .map((item) => `${item.name}${item.amount ? ` (${item.amount})` : ""}`)
+        .map((item) => {
+          const expiration = getExpirationMeta(item.expiresAt);
+          return `${item.name}${item.amount ? ` (${item.amount})` : ""}${expiration ? ` [${expiration.label}]` : ""}`;
+        })
         .join("; ");
       return `${bucketMeta[bucket].title}: ${items || "none"}`;
     })
@@ -899,6 +957,7 @@ function saveGeneratedPlan(plan) {
         bucket: "buy",
         name: item,
         amount: "From generated plan",
+        expiresAt: "",
         checked: false,
       });
     }
@@ -911,6 +970,7 @@ function saveGeneratedPlan(plan) {
         bucket: "prep",
         name: item,
         amount: "From generated plan",
+        expiresAt: "",
         checked: false,
       });
     }
@@ -1195,6 +1255,18 @@ document.addEventListener("click", (event) => {
   }
 });
 
+document.addEventListener("change", (event) => {
+  const ingredientExpiration = event.target.closest("[data-ingredient-expiration]");
+  if (!ingredientExpiration) return;
+
+  const item = state.ingredients.find((ingredient) => ingredient.id === ingredientExpiration.dataset.ingredientExpiration);
+  if (!item) return;
+  item.expiresAt = ingredientExpiration.value;
+  saveState();
+  renderIngredients();
+  showToast(item.expiresAt ? "Expiration date saved." : "Expiration date cleared.");
+});
+
 elements.ingredientForm.addEventListener("submit", (event) => {
   event.preventDefault();
   const formData = new FormData(elements.ingredientForm);
@@ -1203,6 +1275,7 @@ elements.ingredientForm.addEventListener("submit", (event) => {
     bucket: formData.get("bucket"),
     name: String(formData.get("name")).trim(),
     amount: String(formData.get("amount")).trim(),
+    expiresAt: String(formData.get("expiresAt") || ""),
     checked: false,
   });
   saveState();
