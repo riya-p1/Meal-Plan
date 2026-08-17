@@ -365,6 +365,7 @@ function mergeRoutineDefaults(savedTasks, removedDefaultIds = []) {
   const extras = savedTasks.filter((item) => !defaultRoutineTasks.some((defaultItem) => defaultItem.id === item.id));
   return [...defaults, ...extras].map((item) => ({
     ...item,
+    date: item.date || "",
     doneDates: Array.isArray(item.doneDates) ? item.doneDates : [],
   }));
 }
@@ -497,12 +498,18 @@ function ingredientItem(item) {
       <span class="ingredient-copy">
         <span>${escapeHtml(item.name)}</span>
         <small>${escapeHtml(item.amount || "No note")}</small>
-        ${expiration ? `<span class="expiry-badge ${expiration.className}">${escapeHtml(expiration.label)}</span>` : ""}
+        <span class="ingredient-expiry-row">
+          ${
+            expiration
+              ? `<span class="expiry-badge ${expiration.className}">${escapeHtml(expiration.label)}</span>`
+              : `<span class="expiry-muted">no expiry set</span>`
+          }
+          <label class="expiry-input">
+            <span>Exp</span>
+            <input type="date" data-ingredient-expiration="${item.id}" value="${escapeHtml(item.expiresAt || "")}" aria-label="Expiration date for ${escapeHtml(item.name)}" />
+          </label>
+        </span>
       </span>
-      <label class="expiry-input">
-        <span>Expires</span>
-        <input type="date" data-ingredient-expiration="${item.id}" value="${escapeHtml(item.expiresAt || "")}" aria-label="Expiration date for ${escapeHtml(item.name)}" />
-      </label>
       <button class="remove-button" type="button" data-ingredient-remove="${item.id}" title="Remove ${escapeHtml(item.name)}" aria-label="Remove ${escapeHtml(item.name)}">x</button>
     </article>
   `;
@@ -554,7 +561,7 @@ function renderRoutine() {
   const today = new Date();
   const dayName = getDayName(today);
   const dateKey = getDateKey(today);
-  const tasks = state.routineTasks.filter((task) => isTaskScheduled(task, dayName));
+  const tasks = state.routineTasks.filter((task) => isTaskScheduled(task, dayName, dateKey));
 
   elements.routineBoard.innerHTML = tasks.length
     ? tasks.map((task) => routineItem(task, dateKey, dayName)).join("")
@@ -566,7 +573,7 @@ function renderChoreGrid() {
   elements.choreGrid.innerHTML = weekDates
     .map(({ date, day }) => {
       const dateKey = getDateKey(date);
-      const tasks = state.routineTasks.filter((task) => isTaskScheduled(task, day));
+      const tasks = state.routineTasks.filter((task) => isTaskScheduled(task, day, dateKey));
       return `
         <div class="chore-day">
           <div class="day-title">${day}<span>${tasks.filter((task) => isRoutineDone(task, dateKey)).length}/${tasks.length}</span></div>
@@ -585,7 +592,8 @@ function renderChoreGrid() {
 
 function routineItem(task, dateKey, dayName, compact = false) {
   const done = isRoutineDone(task, dateKey);
-  const removeButton = compact
+  const scheduleLabel = task.cadence === "once" && task.date ? formatDate(task.date) : "";
+  const removeButton = compact && task.cadence !== "once"
     ? ""
     : `<button class="remove-button" type="button" data-routine-remove="${task.id}" title="Remove ${escapeHtml(task.name)}" aria-label="Remove ${escapeHtml(task.name)}">x</button>`;
   return `
@@ -599,7 +607,7 @@ function routineItem(task, dateKey, dayName, compact = false) {
       />
       <span>
         <span>${escapeHtml(task.name)}</span>
-        <small>${escapeHtml([task.category, task.time, compact ? "" : task.notes].filter(Boolean).join(" - "))}</small>
+        <small>${escapeHtml([task.category, task.time, compact ? "" : scheduleLabel, compact ? "" : task.notes].filter(Boolean).join(" - "))}</small>
       </span>
       ${removeButton}
     </article>
@@ -1068,7 +1076,8 @@ function getCurrentWeekDates() {
   });
 }
 
-function isTaskScheduled(task, dayName) {
+function isTaskScheduled(task, dayName, dateKey) {
+  if (task.cadence === "once") return Boolean(task.date && task.date === dateKey);
   if (task.cadence === "daily") return true;
   if (task.cadence === "weekdays") return WEEKDAYS.includes(dayName);
   if (task.cadence === "weekly" || task.cadence === "custom") return task.day === dayName;
@@ -1122,8 +1131,11 @@ function showToast(message) {
 }
 
 function setDefaultDate() {
+  const todayKey = getDateKey(new Date());
   const dateInput = document.querySelector("#log-date");
-  dateInput.value = new Date().toISOString().slice(0, 10);
+  dateInput.value = todayKey;
+  const routineDateInput = document.querySelector("#routine-date");
+  if (routineDateInput) routineDateInput.value = todayKey;
 }
 
 function copyBuyList() {
@@ -1289,12 +1301,19 @@ elements.routineForm.addEventListener("submit", (event) => {
   const formData = new FormData(elements.routineForm);
   const cadence = formData.get("cadence");
   const day = formData.get("day");
+  const date = String(formData.get("date") || "");
+  if (cadence === "once" && !date) {
+    document.querySelector("#routine-date").focus();
+    showToast("Pick the date for this one-time task.");
+    return;
+  }
   state.routineTasks.push({
     id: makeId("routine"),
     name: String(formData.get("name")).trim(),
     category: formData.get("category"),
     cadence,
-    day: cadence === "daily" || cadence === "weekdays" ? "" : day,
+    day: cadence === "weekly" || cadence === "custom" ? day : "",
+    date: cadence === "once" ? date : "",
     time: String(formData.get("time")).trim(),
     notes: String(formData.get("notes")).trim(),
     doneDates: [],
@@ -1302,6 +1321,7 @@ elements.routineForm.addEventListener("submit", (event) => {
   });
   saveState();
   elements.routineForm.reset();
+  setDefaultDate();
   renderRoutine();
   renderChoreGrid();
   showToast("Routine task saved.");

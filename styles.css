@@ -941,10 +941,15 @@ h3 {
 }
 
 .routine-item.compact {
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: start;
   min-height: auto;
   padding: 10px;
+}
+
+.routine-item.compact .remove-button {
+  width: 24px;
+  height: 24px;
 }
 
 .routine-item.compact > span > span {
@@ -1011,6 +1016,14 @@ h3 {
   gap: 3px;
 }
 
+.ingredient-copy .ingredient-expiry-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
 .ingredient-item.is-expired,
 .ingredient-item.expires-today,
 .ingredient-item.expires-soon {
@@ -1048,16 +1061,35 @@ h3 {
 }
 
 .expiry-input {
-  grid-column: 2 / -1;
-  gap: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   color: var(--muted);
   font-size: 0.72rem;
+  font-weight: 900;
+  line-height: 1;
 }
 
 .expiry-input input {
-  min-height: 34px;
-  padding: 7px 8px;
-  font-size: 0.78rem;
+  width: 30px;
+  height: 26px;
+  min-height: 26px;
+  padding: 0 3px;
+  color: transparent;
+  font-size: 0;
+}
+
+.expiry-input input::-webkit-calendar-picker-indicator {
+  margin: 0;
+  cursor: pointer;
+  opacity: 0.78;
+}
+
+.expiry-muted {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  opacity: 0.75;
 }
 
 .remove-button {
