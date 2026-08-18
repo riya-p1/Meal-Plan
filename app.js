@@ -496,21 +496,17 @@ function ingredientItem(item) {
     <article class="ingredient-item ${item.checked ? "is-checked" : ""} ${expiration?.className || ""}">
       <input type="checkbox" data-ingredient-check="${item.id}" ${item.checked ? "checked" : ""} aria-label="Mark ${escapeHtml(item.name)} complete" />
       <span class="ingredient-copy">
-        <span>${escapeHtml(item.name)}</span>
+        <span class="ingredient-name">${escapeHtml(item.name)}</span>
         <small>${escapeHtml(item.amount || "No note")}</small>
-        <span class="ingredient-expiry-row">
-          ${
-            expiration
-              ? `<span class="expiry-badge ${expiration.className}">${escapeHtml(expiration.label)}</span>`
-              : `<span class="expiry-muted">no expiry set</span>`
-          }
-          <label class="expiry-input">
-            <span>Exp</span>
-            <input type="date" data-ingredient-expiration="${item.id}" value="${escapeHtml(item.expiresAt || "")}" aria-label="Expiration date for ${escapeHtml(item.name)}" />
-          </label>
-        </span>
+        ${expiration ? `<span class="expiry-badge ${expiration.className}">${escapeHtml(expiration.label)}</span>` : ""}
       </span>
-      <button class="remove-button" type="button" data-ingredient-remove="${item.id}" title="Remove ${escapeHtml(item.name)}" aria-label="Remove ${escapeHtml(item.name)}">x</button>
+      <span class="ingredient-card-actions">
+        <button class="remove-button" type="button" data-ingredient-remove="${item.id}" title="Remove ${escapeHtml(item.name)}" aria-label="Remove ${escapeHtml(item.name)}">x</button>
+        <label class="expiry-input ${item.expiresAt ? "has-date" : ""}" title="${item.expiresAt ? "Edit expiration date" : "Set expiration date"}">
+          <span>${item.expiresAt ? "Edit" : "Date"}</span>
+          <input type="date" data-ingredient-expiration="${item.id}" value="${escapeHtml(item.expiresAt || "")}" aria-label="Expiration date for ${escapeHtml(item.name)}" />
+        </label>
+      </span>
     </article>
   `;
 }

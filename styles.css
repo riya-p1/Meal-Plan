@@ -978,6 +978,9 @@ h3 {
 .ingredient-list {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  grid-auto-rows: max-content;
+  align-content: start;
+  align-items: start;
   gap: 7px;
   padding: 10px;
 }
@@ -993,7 +996,7 @@ h3 {
   background: #fbfaf5;
 }
 
-.ingredient-item input {
+.ingredient-item > input[type="checkbox"] {
   width: 18px;
   height: 18px;
   accent-color: var(--leaf);
@@ -1011,17 +1014,9 @@ h3 {
   line-height: 1.35;
 }
 
-.ingredient-copy {
+.ingredient-item .ingredient-copy {
   display: grid;
   gap: 3px;
-}
-
-.ingredient-copy .ingredient-expiry-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-  flex-wrap: wrap;
 }
 
 .ingredient-item.is-expired,
@@ -1061,35 +1056,58 @@ h3 {
 }
 
 .expiry-input {
+  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  justify-content: center;
+  min-width: 42px;
+  min-height: 24px;
+  padding: 0 7px;
+  border: 1px solid rgba(32, 33, 35, 0.13);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.78);
   color: var(--muted);
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-weight: 900;
   line-height: 1;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.expiry-input.has-date {
+  border-color: rgba(140, 82, 103, 0.24);
+  background: #fff0f5;
+  color: #8c5267;
+}
+
+.expiry-input:focus-within,
+.expiry-input:hover {
+  border-color: rgba(177, 79, 114, 0.42);
+  background: white;
 }
 
 .expiry-input input {
-  width: 30px;
-  height: 26px;
-  min-height: 26px;
-  padding: 0 3px;
-  color: transparent;
-  font-size: 0;
-}
-
-.expiry-input input::-webkit-calendar-picker-indicator {
-  margin: 0;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  padding: 0;
+  border: 0;
+  opacity: 0;
   cursor: pointer;
-  opacity: 0.78;
 }
 
-.expiry-muted {
-  color: var(--muted);
-  font-size: 0.72rem;
-  font-weight: 800;
-  opacity: 0.75;
+.ingredient-item .ingredient-card-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.ingredient-item .ingredient-card-actions .remove-button {
+  width: 24px;
+  height: 24px;
 }
 
 .remove-button {
@@ -1119,8 +1137,10 @@ h3 {
   color: var(--muted);
 }
 
-.is-checked span,
-.is-checked small {
+.routine-item.is-checked > span > span,
+.routine-item.is-checked small,
+.ingredient-item.is-checked .ingredient-name,
+.ingredient-item.is-checked .ingredient-copy small {
   text-decoration: line-through;
   opacity: 0.58;
 }
